@@ -214,6 +214,7 @@ aside h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:
       <p>Extérieur d'après le plan de masse : terrain de 9,43 m de large, rue de Perpignan côté porte d'entrée. Côté rue, 5 m de profondeur : allée de 3,50 m qui descend jusqu'à la porte de garage, fermée par un portail coulissant anthracite de 3,50 m, pelouse au niveau de la rue jusqu'à la façade, escalier béton de 6 marches du jardin au palier de la porte d'entrée, le tout entouré d'un mur de 2,20 m. Côté terrasse, jardin en terre de 5,02 m à 6,11 m de profondeur, au niveau du terrain, clos de murs en plaques béton de 2 m, avec une petite dalle béton au fond à droite. Devant la porte du sous-sol, courette basse prolongée le long de l'escalier béton qui monte à la terrasse (ouverture de 1 m dans la paroi vitrée), fermée par un muret en parpaings. Dalle béton prolongée jusqu'au mur de droite. Arbres côté rue repris du plan.</p>
       <p>Mode chantier (🚧) : cliquez sur un objet pour ouvrir son menu (Déplacer, tourner de 15°, Fixer ; ✕ annule). Sur le lien Claude, les objets déplacés sont enregistrés pour tous les visiteurs. Sur une copie hébergée ailleurs, ils restent mémorisés sur l'appareil utilisé.</p>
       <p>📸 Évolution : page de photos du chantier, partagée sur la maquette en ligne de Claude.</p>
+      <p>Jardin avant (croquis) : descente du garage élargie en biais jusqu'au palier, marche 1 le long du mur de la rue, marches 2 et 3 en biais jusqu'au pied de l'escalier d'entrée, jardins au milieu et à droite, bordures en parpaings. Hauteurs des marches estimées (~17 cm). Salon : télévision sur meuble à roulettes dans le coin toilettes / baie.</p>
       <p>Façade : enduit beige sable (photo).</p>
       <p>Gauche, droite, avant et arrière se lisent comme sur le plan, porte d'entrée en bas.</p>
     </section>
@@ -287,7 +288,7 @@ const ROOMS = [
   {id:'salon', floor:0, name:'Salon / salle à manger', m2:'48,8', rects:[[0,0,743,600],[743,172,752,600],[752,172,842,280]], label:[380,300], mat:'sand'},
   // Extérieur (plan de masse) : rue de Perpignan côté porte d'entrée, terrain en pente vers l'arrière
   {id:'allee', floor:0, ext:true, z:(GROUND+BASEB)/2, name:'Allée du garage', m2:'17,5', rects:[[LOT.x1,630,300,LOT.yStreet]], label:[125,880], mat:null},
-  {id:'jardinAvant', floor:0, ext:true, z:GROUND, name:'Jardin côté rue', m2:'28', rects:[[315,630,LOT.x2,LOT.yStreet-15]], label:[620,900], mat:'lawn'},
+  {id:'jardinAvant', floor:0, ext:true, name:'Jardin côté rue', m2:'', z:-95, rects:[[360,730,640,970],[817,630,LOT.x2,LOT.yStreet-15]], label:[500,880], mat:null},
   {id:'jardinArriere', floor:0, ext:true, z:GROUND, name:'Jardin', m2:'52', rects:[[LOT.x1,-940,LOT.x2,-329]], label:[420,-620], mat:null},
   {id:'rue', floor:0, ext:true, z:GROUND, name:'Rue de Perpignan', m2:'', rects:[[-1500,LOT.yStreet+150,2400,LOT.yStreet+750]], label:[420,LOT.yStreet+450], mat:'asphalt'},
   {id:'garage', floor:2, name:'Garage', m2:'25,3', rects:[[0,BY0,290,600]], label:[145,330], mat:'concrete'},
@@ -597,19 +598,46 @@ const roofG = new THREE.Group(); scene.add(roofG); roofG.visible=false;
   box(g,-1500,-30,L.x1-15,S+800,ZB,Z0,earth,null,{cast:false});            // voisin côté véranda
   box(g,L.x2,-30,2400,S+800,ZB,Z0,earth,null,{cast:false});                 // voisin de l'autre côté
   box(g,L.x1,-30,-30,630,ZB,Z0,earth,null,{cast:false}); box(g,IW+EXT,-30,L.x2,630,ZB,Z0,earth,null,{cast:false});
-  box(g,315,630,L.x2,S,ZB,Z0-1,earth,null,{cast:false});                    // sous la pelouse (jusqu'à la façade)
   box(g,L.x1-15,S,L.x2,S+800,ZB,Z0-1,earth,null,{cast:false});              // sous trottoir et rue
   // trottoir
   box(g,-1500,S,2400,S+150,Z0-1,Z0+2,MATS.paving,null,{cast:false});
   box(g,-1500,S+147,2400,S+153,Z0,Z0+12,MATS.kerb,null,{cast:false});
-  // allée en descente jusqu'à la porte de garage (2,40 m sur 5 m), murs de soutènement
-  { const len=Math.hypot(M(S-630),M(Z0-ZB)), geo=new THREE.PlaneGeometry(M(300-L.x1),len);
-    const uv=geo.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*M(300-L.x1)/1.6,uv.getY(i)*len/1.6);
-    const m=new THREE.Mesh(geo,MATS.paving); m.rotation.x=-Math.PI/2-Math.atan2(M(Z0-ZB),M(S-630));
-    m.position.set(M((L.x1+300)/2),M((Z0+ZB)/2)+0.004,M((630+S)/2)); m.receiveShadow=true;
-    m.userData={kind:'floor',floor:0,room:'allee'}; pickables.push(m); g.add(m); }
-  // muret de soutènement entre la descente du garage et la pelouse, jusqu'à la façade
-  box(g,300,630,315,S-15,ZB,Z0+5,MATS.kerb,{kind:'wall',floor:0});
+  /* Jardin avant d'après le croquis et les photos (vue de dessus, maison en haut) :
+     descente du garage à gauche, qui s'élargit en biais jusqu'au palier ; marche 1 le long du mur de la rue ;
+     marches 2 et 3 en biais qui montent vers le pied de l'escalier d'entrée ; jardin au milieu et à droite ;
+     bordures en parpaings entre chaque zone. Hauteurs estimées (marches de ~17 cm). */
+  const FR={ M1:-107, M2:-90, M3:-73, F:-56, G:-95 };
+  const rampZ=y=>ZB+(Math.min(y,S)-630)/(S-630)*(Z0-ZB);
+  const shapeOf=pts=>{ const sh=new THREE.Shape(); pts.forEach(([x,y],i)=> i?sh.lineTo(M(x),-M(y)):sh.moveTo(M(x),-M(y))); return sh; };
+  // volume plein d'un polygone, du sol du garage jusqu'au niveau z (dessus = matériau top)
+  const prism=(pts,z,top,sideF,ud)=>{ const geo=new THREE.ExtrudeGeometry(shapeOf(pts),{depth:M(z-ZB),bevelEnabled:false});
+    const me=new THREE.Mesh(geo,[top,side]); me.rotation.x=-Math.PI/2; me.position.y=M(ZB); me.castShadow=true; me.receiveShadow=true;
+    if(ud){ me.userData=ud; pickables.push(me); } g.add(me); return me; };
+  // muret entre deux points (épaisseur 15 cm)
+  const wallLine=(a,b,ztop,m)=>{ const len=Math.hypot(b[0]-a[0],b[1]-a[1]), w=new THREE.Mesh(new THREE.BoxGeometry(M(len+15),M(ztop-ZB),M(15)),m);
+    w.position.set(M((a[0]+b[0])/2),M((ztop+ZB)/2),M((a[1]+b[1])/2)); w.rotation.y=-Math.atan2(b[1]-a[1],b[0]-a[0]);
+    w.castShadow=true; w.receiveShadow=true; w.userData={kind:'wall',floor:0}; pickables.push(w); g.add(w); };
+  const concF=mat(0xb9b6ae,{roughness:.9}), blkF=mat(0xcfcbc2,{roughness:.95}), sideF=mat(0x9a8f80,{roughness:1});
+  // descente du garage : pente de la rue jusqu'à la porte de garage, élargie en biais vers le palier
+  { const pts=[[L.x1,630],[360,630],[360,730],[335,800],[300,974],[300,S],[L.x1,S]];
+    const sg=new THREE.ShapeGeometry(shapeOf(pts)), pos=sg.attributes.position, uv=sg.attributes.uv;
+    for(let i=0;i<pos.count;i++){ const x=pos.getX(i), y=-pos.getY(i); pos.setXYZ(i,x,M(rampZ(y*100))+0.004,y); uv.setXY(i,x/1.6,y/1.6); }
+    sg.computeVertexNormals(); const m=new THREE.Mesh(sg,[MATS.paving]); sg.clearGroups(); sg.addGroup(0,Infinity,0);
+    m.material=MATS.paving; m.material.side=THREE.DoubleSide; m.receiveShadow=true; m.userData={kind:'floor',floor:0,room:'allee'}; pickables.push(m); g.add(m); }
+  // jardin du milieu (sous le palier et l'escalier, jusqu'aux marches) et jardin de droite
+  prism([[360,630],[700,630],[700,730],[671,834],[635,974],[300,974],[335,800],[360,730]],FR.G,MATS.lawn,sideF,{kind:'floor',floor:0,room:'jardinAvant'});
+  prism([[817,630],[L.x2,630],[L.x2,S-15],[747,S-15],[745,1007],[778,862],[817,730]],FR.G,MATS.lawn,sideF,{kind:'floor',floor:0,room:'jardinAvant'});
+  // marches béton
+  prism([[300,974],[635,974],[745,1007],[747,S-15],[300,S-15]],FR.M1,concF,concF,{kind:'stair',floor:0});   // marche 1, le long du mur de la rue
+  prism([[671,834],[778,862],[745,1007],[635,974]],FR.M2,concF,concF,{kind:'stair',floor:0});               // marche 2
+  prism([[700,730],[817,730],[778,862],[671,834]],FR.M3,concF,concF,{kind:'stair',floor:0});                // marche 3
+  prism([[700,630],[817,630],[817,730],[700,730]],FR.F,concF,concF,{kind:'floor',floor:0,room:'jardinAvant'}); // pied de l'escalier
+  // bordures en parpaings
+  wallLine([360,730],[335,800],FR.G+15,blkF); wallLine([335,800],[300,974],FR.G+15,blkF);    // descente | jardin
+  wallLine([300,974],[635,974],FR.G+15,blkF);                                              // jardin | marche 1
+  wallLine([635,974],[671,834],FR.M2+15,blkF); wallLine([671,834],[700,730],FR.M3+15,blkF); // jardin | marches 2 et 3
+  wallLine([817,730],[778,862],FR.M3+15,blkF); wallLine([778,862],[745,1007],FR.M2+15,blkF); wallLine([745,1007],[747,S-15],FR.G+15,blkF); // marches | jardin de droite
+  wallLine([817,630],[817,730],FR.F+15,blkF);                                              // pied d'escalier | jardin de droite
   // murs de 2,20 m autour du jardin avant + portail coulissant anthracite de 3,50 m sur la rue
   const wallM=mat(0xd8d2c6,{roughness:.9}), WH=Z0+220;
   box(g,L.x1-15,630,L.x1,S,ZB,WH,wallM,{kind:'wall',floor:0});
@@ -620,11 +648,11 @@ const roofG = new THREE.Group(); scene.add(roofG); roofG.visible=false;
     box(g,L.x1+5,S-12,290,S-4,Z0+4,Z0+200,ant,ud);                       // vantail
     for(let z=Z0+20;z<Z0+200;z+=18) box(g,L.x1+5,S-13,290,S-12,z,z+3,mat(0x2c3034,{roughness:.4}),null);   // lames
     box(g,L.x1-15,S-14,600,S-2,Z0,Z0+4,ant,null); }                       // rail
-  // escalier d'entrée : palier devant la porte, volée le long de la façade qui s'arrête au niveau du jardin (6 marches)
-  { const st=mat(0xd2cdc2,{roughness:.85}), blk=mat(0xc9b48a,{roughness:.95}), n=6, rise=(-Z0)/n, t=25, X0=490;
+  // escalier d'entrée : palier devant la porte, volée le long de la façade jusqu'au pied d'escalier (4 hauteurs de 14 cm)
+  { const st=mat(0xd2cdc2,{roughness:.85}), pb=mat(0xc9b48a,{roughness:.95}), X0=490, n=4, rise=-FR.F/n, t=(700-X0)/n;
     box(g,360,630,X0,730,-20,0,st,{kind:'stair',floor:0});                 // palier
-    box(g,370,640,480,730,Z0,-20,blk,{kind:'wall',floor:0});               // pilier jusqu'au jardin
-    for(let k=0;k<n-1;k++){ const top=-(k+1)*rise; box(g,X0+k*t,630,X0+(k+1)*t,730,Z0,top,st,{kind:'stair',floor:0}); }
+    box(g,370,640,480,730,FR.G,-20,pb,{kind:'wall',floor:0});              // pilier
+    for(let k=0;k<n-1;k++){ const top=-(k+1)*rise; box(g,X0+k*t,630,X0+(k+1)*t,730,FR.G,top,st,{kind:'stair',floor:0}); }
   }
   // jardin du fond (trapèze 5,02 / 6,11 m), en terre, au niveau du terrain (coupe C)
   const GL=GROUND, back=x=>L.yBackL+(x-L.x1)/(L.x2-L.x1)*(L.yBackR-L.yBackL);
@@ -669,7 +697,7 @@ const roofG = new THREE.Group(); scene.add(roofG); roofG.visible=false;
   const tree=(x,y,z,h,r)=>{ box(g,x-6,y-6,x+6,y+6,z,z+h*0.45,mat(0x6b5440),null);
     const c=new THREE.Mesh(new THREE.SphereGeometry(M(r),16,12),mat(0x4f7a42,{roughness:.9}));
     c.position.set(M(x),M(z+h*0.45+r*0.8),M(y)); c.castShadow=true; (OBJ||g).add(c); };
-  movable('Arbuste',0,g,()=>tree(576,1038,Z0,180,70)); movable('Arbre',0,g,()=>tree(820,1060,Z0,320,120));
+  movable('Arbre',0,g,()=>tree(830,1060,FR.G,320,110));
 })();
 
 /* --- Escalier qui descend au sous-sol (même largeur, sous celui qui monte) --- */
@@ -809,7 +837,7 @@ const roofG = new THREE.Group(); scene.add(roofG); roofG.visible=false;
     box(K,14,B0+2,28,B0+16,z0+34,z0+37,blk,null);              // couvercle
   });
   // canapé d'angle gris (velours côtelé), en face de la baie vitrée côté toilettes, méridienne côté cuisine, tourné de 25° vers la télévision
-  const SOFA={x:492.5, y:239, rot:25};   // avancé de 75 cm vers la baie puis décalé de 75 cm vers la gauche
+  const SOFA={x:492.5, y:239, rot:0};    // même emplacement, remis à 0° face au mur des baies
   movable('Canapé',0,g,()=>{
     const gr=mat(0x5f6366,{roughness:.95}), grL=mat(0x6a6e71,{roughness:.95}), leg=mat(0x141516,{roughness:.5});
     const X0=-113, X1=113, YB=46, YF=-46, YC=-106, XC=X0+82;
@@ -837,25 +865,35 @@ const roofG = new THREE.Group(); scene.add(roofG); roofG.visible=false;
       box(g,-34,-21,34,21,6,9,wh,null);                                              // tablette basse
     }, TB);
   }
-  // télévision 126 cm (50"), 110 × 62 cm, fixée au mur entre les baies, centrée en largeur (x = 375) et en hauteur (1,25 m)
+  // télévision 126 cm (50") sur meuble support à roulettes en noyer (photo), dans le coin entre les toilettes et la baie, orientée vers le salon
   movable('Télévision',0,g,()=>{
-    const W=110, H=62, cx=375, cz=H0/2;
-    box(g,cx-W/2,0,cx+W/2,3,cz-H/2,cz+H/2,mat(0x111214,{roughness:.4}),null);
-    box(g,cx-W/2+1,3,cx+W/2-1,3.3,cz-H/2+1,cz+H/2-1,mat(0x1d2730,{roughness:.08,metalness:.4}),null);
-  });
-  // fauteuil pivotant bouclette gris clair (L.75 · P.87 · H.90, assise H.43 · P.55), dans l'angle entre la baie et le mur des toilettes, tourné vers le salon
+    const wal=mat(0x6e4a2e,{roughness:.6}), blk=mat(0x141516,{roughness:.4,metalness:.3});
+    // meuble : plateau 100 × 45 à 58 cm, dosseret, tablette basse, 4 pieds inclinés, roulettes
+    box(g,-50,-22.5,50,22.5,55,58,wal,null);
+    box(g,-50,16,50,22.5,58,70,wal,null);                                   // dosseret
+    box(g,-44,-18,44,18,18,20,wal,null);                                     // tablette basse
+    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx,sy])=>{
+      const leg=new THREE.Mesh(new THREE.BoxGeometry(M(4),M(56),M(4)),wal);
+      leg.position.set(M(sx*44),M(30),M(sy*17)); leg.rotation.z=-sx*0.08; leg.rotation.x=sy*0.06; leg.castShadow=true; OBJ.add(leg);
+      box(g,sx*47-3,sy*20-3,sx*47+3,sy*20+3,0,4,blk,null); });            // roulettes
+    // deux mâts noirs et l'écran 110 × 62 cm (126 cm de diagonale)
+    box(g,-32,18,-28,22,58,96,blk,null); box(g,28,18,32,22,58,96,blk,null);
+    box(g,-55,13,55,17,80,142,blk,null);
+    box(g,-54,12.6,54,13,81,141,mat(0x1d2730,{roughness:.08,metalness:.4}),null);
+  }, {x:690, y:58, rot:135});
+  // fauteuil pivotant bouclette gris clair (L.75 · P.87 · H.90, assise H.43 · P.55), à côté du canapé, vers l'escalier
   movable('Fauteuil',0,g,()=>{
     const fab=mat(0xcfd0cc,{roughness:1}), fabD=mat(0xbfc0bc,{roughness:1}), blk=mat(0x151618,{roughness:.45,metalness:.3});
-    const XB=665, XF=XB-87, Y0=23, Y1=Y0+75, cx=(XF+XB)/2+6, cy=(Y0+Y1)/2;
-    box(g,cx-36,cy-2,cx+36,cy+2,1,4,blk,null); box(g,cx-2,cy-36,cx+2,cy+36,1,4,blk,null);   // piètement 4 branches
-    const col=new THREE.Mesh(new THREE.CylinderGeometry(M(3),M(3),M(24),12),blk); col.position.set(M(cx),M(16),M(cy)); OBJ.add(col);
-    box(g,XF+4,Y0+3,XB-14,Y1-3,28,36,fabD,null);                                 // coque
-    box(g,XF,Y0,XF+55,Y1,36,43,fab,null);                                        // assise (P.55, H.43)
-    box(g,XF+55,Y0,XB-14,Y1,34,43,fab,null);
-    const back=new THREE.Mesh(new THREE.BoxGeometry(M(12),M(52),M(75)),fab);    // dossier incliné jusqu'à H.90
-    back.position.set(M(XB-14),M(66),M(cy)); back.rotation.z=-0.32; back.castShadow=true; back.receiveShadow=true;
+    const YF=-43.5, YB=43.5, X0=-37.5, X1=37.5;                             // face vers l'avant local (−y)
+    box(g,-36,0,36,4,1,4,blk,null); box(g,-2,-34,2,38,1,4,blk,null);          // piètement 4 branches
+    const col=new THREE.Mesh(new THREE.CylinderGeometry(M(3),M(3),M(24),12),blk); col.position.set(0,M(16),M(2)); OBJ.add(col);
+    box(g,X0+3,YF+4,X1-3,YB-14,28,36,fabD,null);                              // coque
+    box(g,X0,YF,X1,YF+55,36,43,fab,null);                                     // assise (P.55, H.43)
+    box(g,X0,YF+55,X1,YB-14,34,43,fab,null);
+    const back=new THREE.Mesh(new THREE.BoxGeometry(M(75),M(52),M(12)),fab);   // dossier incliné jusqu'à H.90
+    back.position.set(0,M(66),M(YB-14)); back.rotation.x=0.32; back.castShadow=true; back.receiveShadow=true;
     back.userData={kind:'fixture',floor:0,name:'Fauteuil'}; pickables.push(back); OBJ.add(back);
-  });
+  }, {x:663, y:250, rot:0});
   // îlot (façades bois, plan beige clair)
   movable('Îlot',0,g,()=>{
     box(g,139,307,253,450,10,88,C,null);          // position validée : +21 cm en x, +3 cm en y
