@@ -215,6 +215,7 @@ aside h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:
       <p>Mode chantier (🚧) : cliquez sur un objet pour ouvrir son menu (Déplacer, tourner de 15°, Fixer ; ✕ annule). Sur le lien Claude, les objets déplacés sont enregistrés pour tous les visiteurs. Sur une copie hébergée ailleurs, ils restent mémorisés sur l'appareil utilisé.</p>
       <p>📸 Évolution : page de photos du chantier, partagée sur la maquette en ligne de Claude.</p>
       <p>Jardin avant (croquis) : descente du garage élargie en biais jusqu'au palier, marche 1 le long du mur de la rue, marches 2 et 3 en biais jusqu'au pied de l'escalier d'entrée, jardins au milieu et à droite, bordures en parpaings. Hauteurs des marches estimées (~17 cm). Salon : télévision sur meuble à roulettes dans le coin toilettes / baie.</p>
+      <p>Chambre 3 : dressing dans le renfoncement à gauche de la porte (4 portes coulissantes de 58,5 cm dans l'alignement du mur de la porte), lit 160 × 200 centré sur le mur du fond.</p>
       <p>Façades : enduit beige sable, encadrements clairs, appuis gris et clés au-dessus des ouvertures du rez-de-chaussée (photos).</p>
       <p>Gauche, droite, avant et arrière se lisent comme sur le plan, porte d'entrée en bas.</p>
     </section>
@@ -917,6 +918,34 @@ const roofG = new THREE.Group(); scene.add(roofG); roofG.visible=false;
     box(g,139,307,253,450,0,10,MATS.frame,null);
     box(g,135,303,257,454,88,92,TOP,null);
     box(g,149,395,203,445,92,92.6,mat(0x111315,{roughness:.2}),null); }); // plaque
+})();
+
+/* --- Chambre 3 (étage) : dressing dans le renfoncement à gauche de la porte, lit 160 × 200 en face --- */
+(function(){
+  const g=groups[1], b=BASE1, H=H1;
+  // dressing : renfoncement x 360–480, y 366–600 ; 4 portes coulissantes de 58,5 cm dans le plan du mur de la porte (x = 360)
+  const caisson=mat(0xf1efea,{roughness:.6}), porte=mat(0xf6f5f1,{roughness:.45}), alu=mat(0xb9bec2,{roughness:.3,metalness:.6});
+  const ud={kind:'fixture',floor:1,name:'dressing'};
+  box(g,364,366,480,600,b+240,b+H,caisson,ud);                              // joue haute / caisson du rail
+  box(g,400,370,402,596,b+188,b+190,alu,null);                              // tringle
+  box(g,366,368,478,598,b+200,b+202,caisson,null);                          // étagère haute
+  box(g,366,368,478,598,b,b+8,caisson,null);                                // socle
+  box(g,360,366,365,600,b+236,b+240,alu,null); box(g,360,366,365,600,b,b+2,alu,null);   // rails haut et bas
+  const W=(600-366)/4;
+  for(let k=0;k<4;k++){ const y1=366+k*W, y2=y1+W, x1=(k%2===0)?360:362.2;
+    box(g,x1,y1+.3,x1+2,y2-.3,b+2,b+236,porte,{kind:'fixture',floor:1,name:'porte coulissante du dressing'});
+    box(g,x1-.2,y1+.3,x1+2.2,y1+1.5,b+2,b+236,alu,null); box(g,x1-.2,y2-1.5,x1+2.2,y2-.3,b+2,b+236,alu,null); }   // profilés
+  // lit 160 × 200 centré sur le mur du fond (x = 0), tête de lit contre le mur
+  movable('Lit 160 × 200',1,g,()=>{
+    const frame=mat(0x9b7b5c,{roughness:.6}), drap=mat(0xf4f1ea,{roughness:.9}), couette=mat(0xd8d2c6,{roughness:.95}), oreiller=mat(0xffffff,{roughness:.9});
+    const Y0=437-80, Y1=437+80;
+    box(g,0,Y0-4,8,Y1+4,b,b+110,frame,null);                                 // tête de lit
+    box(g,8,Y0-2,210,Y1+2,b+8,b+30,frame,null);                              // cadre
+    [[12,Y0+2],[12,Y1-6],[204,Y0+2],[204,Y1-6]].forEach(([x,y])=>box(g,x,y,x+4,y+4,b,b+8,frame,null));   // pieds
+    box(g,10,Y0,210,Y1,b+30,b+52,drap,null);                                 // matelas 160 × 200
+    box(g,70,Y0-1,212,Y1+1,b+52,b+57,couette,null);                          // couette
+    box(g,14,Y0+8,48,Y0+74,b+52,b+62,oreiller,null); box(g,14,Y1-74,48,Y1-8,b+52,b+62,oreiller,null);   // oreillers
+  });
 })();
 
 /* --- Salle de bain (étage) --- */
